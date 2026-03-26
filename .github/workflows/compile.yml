@@ -33,7 +33,7 @@ jobs:
           bin/arduino-cli compile --fqbn esp32:esp32:esp32s3 RogueS3/RogueS3.ino --output-dir ./build
 
       - name: Upload Binary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: RogueS3-Firmware
           path: ./build/*.bin
