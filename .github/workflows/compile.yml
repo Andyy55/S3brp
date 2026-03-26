@@ -30,7 +30,7 @@ jobs:
       - name: Compile Sketch
         run: |
           # Ganti "NamaFolder/NamaFile.ino" sesuai file lo
-          bin/arduino-cli compile --fqbn esp32:esp32:esp32s3 S3brp/S3brp.ino --output-dir ./build
+          bin/arduino-cli compile --fqbn esp32:esp32:esp32s3 S3brp.ino --output-dir ./build
 
       - name: Upload Binary
         uses: actions/upload-artifact@v4
