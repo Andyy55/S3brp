@@ -23,17 +23,16 @@ decode_results results;
 String cfg_ssid, cfg_pass;
 int pin_relay, pin_irx, pin_itx, pin_sdcs, pin_led;
 bool relayState = false;
-int ledMode = 0; // 0:Off, 1:Static, 2:Strobe
+int ledMode = 0; 
 uint32_t ledColor = 0xFF0000; 
 unsigned long lastStrobe = 0;
 bool strobeState = false;
 
-// Buffer IR Raw (Buat Clone Remote AC/TV)
+// Buffer IR Raw
 uint16_t rawData[400];
 uint16_t rawLength = 0;
-const uint16_t kRawTick = 2; // Ditambahkan biar gak error
 
-/* --- FUNGSI HELPER (Taruh di atas biar kebaca scope-nya) --- */
+/* --- FUNGSI HELPER --- */
 uint16_t getRawLength(decode_results *results) {
     return results->rawlen - 1;
 }
@@ -56,7 +55,7 @@ void loadIR() {
     }
 }
 
-/* --- UI DASHBOARD (HTML + CSS + JS) --- */
+/* --- UI DASHBOARD --- */
 const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE html><html><head><title>ROGUE S3 ULTIMATE</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -94,11 +93,8 @@ void setup() {
     pref.begin("rogue_v2", false);
     cfg_ssid = pref.getString("s", "ROGUE_S3_AP");
     cfg_pass = pref.getString("p", "mercon123");
-    pin_relay = pref.getInt("pr", 1);
-    pin_irx = pref.getInt("irx", 2);
-    pin_itx = pref.getInt("itx", 3);
-    pin_sdcs = pref.getInt("sc", 10);
-    pin_led = pref.getInt("lp", 48);
+    pin_relay = pref.getInt("pr", 1); pin_irx = pref.getInt("irx", 2);
+    pin_itx = pref.getInt("itx", 3); pin_sdcs = pref.getInt("sc", 10); pin_led = pref.getInt("lp", 48);
 
     pixels = new Adafruit_NeoPixel(1, pin_led, NEO_GRB + NEO_KHZ800);
     pixels->begin(); pixels->show();
@@ -131,7 +127,10 @@ void loop() {
 
     if (irrecv->decode(&results)) {
         rawLength = getRawLength(&results);
-        for (uint16_t i = 0; i < rawLength; i++) { rawData[i] = results.rawbuf[i+1] * kRawTick; }
+        for (uint16_t i = 0; i < rawLength; i++) { 
+            // kRawTick udah ada di library, panggil langsung aja
+            rawData[i] = results.rawbuf[i+1] * kRawTick; 
+        }
         saveIR(); irrecv->resume();
     }
 }
