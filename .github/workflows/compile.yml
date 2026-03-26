@@ -1,0 +1,39 @@
+name: Compile Sketch ESP32-S3
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Install Arduino CLI
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
+          export PATH=$PATH:$(pwd)/bin
+
+      - name: Install ESP32 Board
+        run: |
+          bin/arduino-cli core update-index --additional-urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+          bin/arduino-cli core install esp32:esp32 --additional-urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+
+      - name: Install Libraries
+        run: |
+          # Download library dari GitHub langsung (Clone)
+          git clone https://github.com/me-no-dev/ESPAsyncWebServer.git /home/runner/Arduino/libraries/ESPAsyncWebServer
+          git clone https://github.com/me-no-dev/AsyncTCP.git /home/runner/Arduino/libraries/AsyncTCP
+          # Library yang ada di manager tinggal install biasa
+          bin/arduino-cli lib install "Adafruit NeoPixel"
+          bin/arduino-cli lib install "IRremoteESP8266"
+          
+      - name: Compile Sketch
+        run: |
+          # Ganti "NamaFolder/NamaFile.ino" sesuai file lo
+          bin/arduino-cli compile --fqbn esp32:esp32:esp32s3 RogueS3/RogueS3.ino --output-dir ./build
+
+      - name: Upload Binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: RogueS3-Firmware
+          path: ./build/*.bin
