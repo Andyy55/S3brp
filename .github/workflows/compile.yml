@@ -1,4 +1,4 @@
-name: Compile Sketch ESP32-S3
+name: Compile Sketch ESP32-S3p
 on: [push]
 
 jobs:
