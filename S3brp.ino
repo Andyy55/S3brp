@@ -3,7 +3,7 @@
 #include <ESPAsyncWebServer.h>
 #include <Adafruit_NeoPixel.h>
 
-/* --- CONFIG --- */
+/* -- CONFIG -- */
 const char* ssid = "APAAJALAH";
 const char* pass = "bosmuda00";
 
