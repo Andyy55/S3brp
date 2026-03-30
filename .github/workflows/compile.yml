@@ -28,7 +28,7 @@ jobs:
           bin/arduino-cli lib install "IRremoteESP8266"
           git clone https://github.com/martin-ger/esp32_nat_router.git /home/runner/Arduino/libraries/ESP32_NAT_Router
           
-            - name: Compile Sketch
+      - name: Compile Sketch
         run: |
           # Ditambahin build property biar fitur NAPT di core ESP32 aktif
           bin/arduino-cli compile --fqbn esp32:esp32:esp32s3 \
