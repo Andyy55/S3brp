@@ -1,4 +1,4 @@
-name: Compile Sketch ESP32-S3p
+Kiname: Compile Sketch ESP32-S3p
 on: [push]
 
 jobs:
@@ -13,10 +13,11 @@ jobs:
           curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
           export PATH=$PATH:$(pwd)/bin
 
-      - name: Install ESP32 Board
+            - name: Install ESP32 Board
         run: |
           bin/arduino-cli core update-index --additional-urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
-          bin/arduino-cli core install esp32:esp32 --additional-urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+          # Paksa install versi 2.0.17, jangan biarin dia install 3.x
+          bin/arduino-cli core install esp32:esp32@2.0.17 --additional-urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
       - name: Install Libraries
         run: |
