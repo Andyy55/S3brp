@@ -20,18 +20,20 @@ jobs:
 
       - name: Install Libraries
         run: |
-          # Download library dari GitHub langsung (Clone)
-          git clone https://github.com/me-no-dev/ESPAsyncWebServer.git /home/runner/Arduino/libraries/ESPAsyncWebServer
-          git clone https://github.com/me-no-dev/AsyncTCP.git /home/runner/Arduino/libraries/AsyncTCP
-          # Library yang ada di manager tinggal install biasa
+          # Buat folder libraries di dalam folder project biar gampang dicari compiler
+          mkdir -p libraries
+          git clone https://github.com/me-no-dev/ESPAsyncWebServer.git libraries/ESPAsyncWebServer
+          git clone https://github.com/me-no-dev/AsyncTCP.git libraries/AsyncTCP
+          git clone https://github.com/martin-ger/esp32_nat_router.git libraries/ESP32_NAT_Router
+          
+          # Library manager tetep aman pake CLI
           bin/arduino-cli lib install "Adafruit NeoPixel"
           bin/arduino-cli lib install "IRremoteESP8266"
-          git clone https://github.com/martin-ger/esp32_nat_router.git /home/runner/Arduino/libraries/ESP32_NAT_Router
-          
+     
       - name: Compile Sketch
         run: |
-          # Ditambahin build property biar fitur NAPT di core ESP32 aktif
           bin/arduino-cli compile --fqbn esp32:esp32:esp32s3 \
+            --libraries ./libraries \
             --build-property "build.extra_flags=-DCONFIG_LWIP_IP_FORWARD=1 -DCONFIG_LWIP_IPV4_NAPT=1" \
             S3brp.ino --output-dir ./build
 
