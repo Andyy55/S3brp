@@ -26,7 +26,7 @@ jobs:
           # Library yang ada di manager tinggal install biasa
           bin/arduino-cli lib install "Adafruit NeoPixel"
           bin/arduino-cli lib install "IRremoteESP8266"
-          bin/arduino-cli lib install "ESP32 NAT Router"
+          git clone https://github.com/martin-ger/esp32_nat_router.git /home/runner/Arduino/libraries/ESP32_NAT_Router
           
       - name: Compile Sketch
         run: |
