@@ -24,7 +24,7 @@ jobs:
       - name: Install Specific Libraries
         run: |
           # Pakai versi 1.2.3 karena ini yang paling stabil buat masalah md5.h
-          arduino-cli lib install "ESP Async WebServer@1.2.3"
+          arduino-cli lib install "ESPAsyncWebServer@1.2.3"
           arduino-cli lib install "AsyncTCP"
 
       - name: Compile Sketch
