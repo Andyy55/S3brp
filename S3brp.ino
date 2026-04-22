@@ -1,3 +1,15 @@
+#if __has_include(<esp_rom_md5.h>)
+  #include <esp_rom_md5.h>
+  #ifndef _MD5_H_
+    #define _MD5_H_
+    // Mapping fungsi lama ke fungsi baru di Core v3
+    #define MD5Init esp_rom_md5_init
+    #define MD5Update esp_rom_md5_update
+    #define MD5Final esp_rom_md5_final
+    typedef md5_context_t MD5_CTX;
+  #endif
+#endif
+
 #include <WiFi.h>
 #include <ESPAsyncWebServer.h>
 
