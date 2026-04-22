@@ -13,6 +13,11 @@
 #include <WiFi.h>
 #include <ESPAsyncWebServer.h>
 
+// Definisi pin LED RGB bawaan ESP32-S3 (Biasanya GPIO 48)
+#ifndef RGB_BUILTIN
+#define RGB_BUILTIN 48
+#endif
+
 const char* ssid = "P-DTNR";
 const char* password = "andyanjir123";
 
@@ -20,6 +25,10 @@ const int relayPin = 35; // Sesuaikan GPIO-mu
 bool relayStatus = false; 
 
 AsyncWebServer server(80);
+
+// Variabel untuk non-blocking LED blink
+unsigned long previousMillis = 0;
+bool ledState = false;
 
 // Fungsi Sakti buat mati-nyalain Relay Active Low di ESP32
 void controlRelay(bool nyalakan) {
@@ -38,32 +47,55 @@ void controlRelay(bool nyalakan) {
   }
 }
 
+// UI HTML + CSS Super Keren (Cyberpunk / Modern Card Style)
 const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE HTML><html>
 <head>
-  <title>TESTING PROJECT</title>
+  <title>COMMAND CENTER</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: sans-serif; text-align: center; background: #1a1a1a; color: white; }
-    .btn { padding: 15px 30px; font-size: 20px; border-radius: 50px; border: none; cursor: pointer; transition: 0.3s; }
-    .on { background: #ff4757; box-shadow: 0 0 15px #ff4757; }
-    .off { background: #2ed573; box-shadow: 0 0 15px #2ed573; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    .card { background: #1e293b; padding: 40px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); text-align: center; border: 1px solid #334155; width: 90%; max-width: 400px; }
+    h2 { margin-top: 0; font-size: 28px; font-weight: 800; background: -webkit-linear-gradient(#38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 1px; }
+    .status-box { font-size: 22px; margin: 30px 0; padding: 15px; background: #0f172a; border-radius: 12px; border: 1px solid #475569; letter-spacing: 1px; }
+    .btn { padding: 16px 40px; font-size: 18px; font-weight: bold; color: white; background: linear-gradient(135deg, #3b82f6, #6366f1); border: none; border-radius: 50px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4); outline: none; }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6); }
+    .btn:active { transform: translateY(1px); }
+    .on-text { color: #ef4444; font-weight: 900; text-shadow: 0 0 12px rgba(239, 68, 68, 0.6); }
+    .off-text { color: #22c55e; font-weight: 900; text-shadow: 0 0 12px rgba(34, 197, 94, 0.6); }
   </style>
 </head>
 <body>
-  <h2>ESP32-S3 System</h2>
-  <p>Status: <strong id="stat">%STATE%</strong></p>
-  <button class="btn" onclick="toggle()">PRESS TOGGLE</button>
+  <div class="card">
+    <h2>SYSTEM OVERRIDE</h2>
+    <div class="status-box">STATUS: <span id="stat">%STATE%</span></div>
+    <button class="btn" onclick="toggle()">TOGGLE POWER</button>
+  </div>
   <script>
-    function toggle() {
-      fetch('/toggle').then(r => r.text()).then(d => { document.getElementById('stat').innerHTML = d; });
+    // Fungsi buat update warna text otomatis sesuai status
+    function updateColor() {
+      let statEl = document.getElementById('stat');
+      statEl.className = statEl.innerHTML.trim() === 'ON' ? 'on-text' : 'off-text';
     }
+    
+    function toggle() {
+      fetch('/toggle').then(r => r.text()).then(d => { 
+        document.getElementById('stat').innerHTML = d; 
+        updateColor();
+      });
+    }
+    
+    // Jalanin pas web pertama kali dibuka
+    window.onload = updateColor;
   </script>
 </body>
 </html>)rawliteral";
 
 void setup() {
   Serial.begin(115200);
+
+  // Matikan LED RGB di awal biar bersih
+  neopixelWrite(RGB_BUILTIN, 0, 0, 0);
 
   // Awal booting langsung paksa MATI (High Impedance)
   controlRelay(false);
@@ -88,4 +120,33 @@ void setup() {
   server.begin();
 }
 
-void loop() {}
+void void loop() {
+  unsigned long currentMillis = millis();
+
+  if (!relayStatus) {
+    // STATE: RELAY OFF 
+    // Efek: Hijau nyala sekilas (100ms) "Dip/Lap", terus mati jeda 2.5 detik
+    if (ledState && (currentMillis - previousMillis >= 100)) { 
+      previousMillis = currentMillis;
+      ledState = false;
+      neopixelWrite(RGB_BUILTIN, 0, 0, 0); // Matikan lampu
+    } else if (!ledState && (currentMillis - previousMillis >= 1500)) {
+      previousMillis = currentMillis;
+      ledState = true;
+      neopixelWrite(RGB_BUILTIN, 0, 205, 0); // Nyalakan Hijau sekilas
+    }
+  } else {
+    // STATE: RELAY ON 
+    // Efek: Merah nyala sekilas (100ms) "Dip/Lap", terus mati jeda cepet (800ms)
+    if (ledState && (currentMillis - previousMillis >= 100)) {
+      previousMillis = currentMillis;
+      ledState = false;
+      neopixelWrite(RGB_BUILTIN, 0, 0, 0); // Matikan lampu
+    } else if (!ledState && (currentMillis - previousMillis >= 300)) {
+      // Jedanya 800ms biar cepet tapi tetep kelihatan "Dip" nya, bukan nyala terus
+      previousMillis = currentMillis;
+      ledState = true;
+      neopixelWrite(RGB_BUILTIN, 250, 0, 0); // Nyalakan Merah sekilas
+    }
+  }
+}
