@@ -1,10 +1,6 @@
 name: Build_ESP32S3
 
-on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+on: [push, pull_request]
 
 jobs:
   compile:
@@ -21,13 +17,17 @@ jobs:
           arduino-cli core update-index --additional-urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
           arduino-cli core install esp32:esp32@2.0.17 --additional-urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-      - name: Install Specific Libraries
+      - name: Download & Fix Libraries
         run: |
-          # Pakai versi 1.2.3 karena ini yang paling stabil buat masalah md5.h
-          arduino-cli lib install "ESPAsyncWebServer@1.2.3"
-          arduino-cli lib install "AsyncTCP"
+          mkdir -p $HOME/Arduino/libraries
+          git clone https://github.com/me-no-dev/ESPAsyncWebServer.git $HOME/Arduino/libraries/ESPAsyncWebServer
+          git clone https://github.com/me-no-dev/AsyncTCP.git $HOME/Arduino/libraries/AsyncTCP
+          
+          # --- TRIK SAKTI FIX MD5 ---
+          # Kita ganti paksa tulisan #include "md5.h" jadi #include "rom/md5_utils.h"
+          # di dalem file WebAuthentication.cpp biar gak error
+          sed -i 's/#include "md5.h"/#include "rom\/md5_utils.h"/' $HOME/Arduino/libraries/ESPAsyncWebServer/src/WebAuthentication.cpp
 
       - name: Compile Sketch
         run: |
-          # Mencari file .ino secara otomatis di root folder
-          arduino-cli compile --fqbn esp32:esp32:esp32s3 --libraries ./libraries *.ino
+          arduino-cli compile --fqbn esp32:esp32:esp32s3 --library $HOME/Arduino/libraries *.ino
