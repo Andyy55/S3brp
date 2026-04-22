@@ -28,6 +28,14 @@ jobs:
           # di dalem file WebAuthentication.cpp biar gak error
           sed -i 's/#include "md5.h"/#include "rom\/md5_utils.h"/' $HOME/Arduino/libraries/ESPAsyncWebServer/src/WebAuthentication.cpp
 
-      - name: Compile Sketch
+            - name: Compile Sketch
         run: |
-          arduino-cli compile --fqbn esp32:esp32:esp32s3 --library $HOME/Arduino/libraries *.ino
+          mkdir -p build
+          arduino-cli compile --fqbn esp32:esp32:esp32s3 --output-dir ./build --library $HOME/Arduino/libraries *.ino
+
+      - name: Upload Firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: ESP32S3-Firmware
+          path: build/*.bin
+          
