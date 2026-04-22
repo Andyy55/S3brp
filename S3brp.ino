@@ -54,42 +54,37 @@ const char index_html[] PROGMEM = R"rawliteral(
   <title>COMMAND CENTER</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-    .card { background: #1e293b; padding: 40px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); text-align: center; border: 1px solid #334155; width: 90%; max-width: 400px; }
-    h2 { margin-top: 0; font-size: 28px; font-weight: 800; background: -webkit-linear-gradient(#38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 1px; }
-    .status-box { font-size: 22px; margin: 30px 0; padding: 15px; background: #0f172a; border-radius: 12px; border: 1px solid #475569; letter-spacing: 1px; }
-    .btn { padding: 16px 40px; font-size: 18px; font-weight: bold; color: white; background: linear-gradient(135deg, #3b82f6, #6366f1); border: none; border-radius: 50px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4); outline: none; }
-    .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6); }
-    .btn:active { transform: translateY(1px); }
-    .on-text { color: #ef4444; font-weight: 900; text-shadow: 0 0 12px rgba(239, 68, 68, 0.6); }
-    .off-text { color: #22c55e; font-weight: 900; text-shadow: 0 0 12px rgba(34, 197, 94, 0.6); }
+    body { font-family: sans-serif; background: #020617; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    .card { background: #1e293b; padding: 50px; border-radius: 25px; text-align: center; border: 2px solid #38bdf8; width: 300px; box-shadow: 0 0 20px rgba(56, 189, 248, 0.3); }
+    h2 { color: #38bdf8; letter-spacing: 2px; margin-bottom: 30px; }
+    #stat { font-size: 40px; display: block; margin-bottom: 30px; font-weight: bold; }
+    .btn { width: 100%; padding: 20px; font-size: 20px; font-weight: bold; color: white; background: #2563eb; border: none; border-radius: 15px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+    .on-text { color: #f43f5e; text-shadow: 0 0 15px #f43f5e; }
+    .off-text { color: #10b981; text-shadow: 0 0 15px #10b981; }
   </style>
 </head>
 <body>
   <div class="card">
-    <h2>SYSTEM OVERRIDE</h2>
-    <div class="status-box">STATUS: <span id="stat">%STATE%</span></div>
-    <button class="btn" onclick="toggle()">TOGGLE POWER</button>
+    <h2>CORE CONTROL</h2>
+    <span id="stat">LOADING...</span>
+    <button class="btn" onclick="toggle()">FIRE TOGGLE</button>
   </div>
   <script>
-    // Fungsi buat update warna text otomatis sesuai status
-    function updateColor() {
-      let statEl = document.getElementById('stat');
-      statEl.className = statEl.innerHTML.trim() === 'ON' ? 'on-text' : 'off-text';
+    function updateStatus(status) {
+      const el = document.getElementById('stat');
+      el.innerHTML = status;
+      el.className = (status === 'ON') ? 'on-text' : 'off-text';
     }
+    // Ambil status awal pas web dibuka
+    fetch('/status').then(r => r.text()).then(updateStatus);
     
     function toggle() {
-      fetch('/toggle').then(r => r.text()).then(d => { 
-        document.getElementById('stat').innerHTML = d; 
-        updateColor();
-      });
+      fetch('/toggle').then(r => r.text()).then(updateStatus);
     }
-    
-    // Jalanin pas web pertama kali dibuka
-    window.onload = updateColor;
   </script>
 </body>
 </html>)rawliteral";
+
 
 void setup() {
   Serial.begin(115200);
@@ -106,17 +101,22 @@ void setup() {
   
   
 
+    // Route Halaman Utama (Tanpa Processor biar gak error blank)
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send_P(200, "text/html", index_html, [](const String& var){
-      if(var == "STATE") return relayStatus ? String("ON") : String("OFF");
-      return String();
-    });
+    request->send_P(200, "text/html", index_html);
   });
 
+  // Route buat ngambil status awal
+  server.on("/status", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(200, "text/plain", relayStatus ? "ON" : "OFF");
+  });
+
+  // Route buat toggle
   server.on("/toggle", HTTP_GET, [](AsyncWebServerRequest *request){
     controlRelay(!relayStatus);
     request->send(200, "text/plain", relayStatus ? "ON" : "OFF");
   });
+
 
   server.begin();
 }
