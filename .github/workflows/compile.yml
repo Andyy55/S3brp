@@ -23,11 +23,12 @@ jobs:
         run: |
           # Buat folder libraries di dalam folder project biar gampang dicari compiler
           mkdir -p libraries
-          git clone https://github.com/me-no-dev/ESPAsyncWebServer.git libraries/ESPAsyncWebServer
+          
           git clone https://github.com/me-no-dev/AsyncTCP.git libraries/AsyncTCP
         
           
           # Library manager tetep aman pake CLI
+          arduino-cli lib install "ESP Async WebServer@1.2.3"
           bin/arduino-cli lib install "Adafruit NeoPixel"
           bin/arduino-cli lib install "IRremoteESP8266"
           
