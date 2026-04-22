@@ -13,7 +13,7 @@
 #include <WiFi.h>
 #include <ESPAsyncWebServer.h>
 
-const char* ssid = "Testingbosku";
+const char* ssid = "P-DTNR";
 const char* password = "andyanjir123";
 
 const int relayPin = 27; // Sesuaikan GPIO-mu
@@ -41,7 +41,7 @@ void controlRelay(bool nyalakan) {
 const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE HTML><html>
 <head>
-  <title>ESP32-S3 Relay Hack</title>
+  <title>TESTING PROJECT</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { font-family: sans-serif; text-align: center; background: #1a1a1a; color: white; }
