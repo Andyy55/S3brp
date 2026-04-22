@@ -100,10 +100,11 @@ void setup() {
   // Awal booting langsung paksa MATI (High Impedance)
   controlRelay(false);
 
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) { delay(500); Serial.print("."); }
+  WiFi.softAP(ssid, password); 
+  Serial.print("Access Point Berhasil! IP: ");
+  Serial.println(WiFi.softAPIP());
   
-  Serial.println("\nGas! IP: " + WiFi.localIP().toString());
+  
 
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send_P(200, "text/html", index_html, [](const String& var){
