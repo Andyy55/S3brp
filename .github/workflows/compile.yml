@@ -1,46 +1,33 @@
-name: Compile Sketch ESP32-S3p
-on: [push]
+name: Build_ESP32S3
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
 
 jobs:
-  build:
+  compile:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install Arduino CLI
-        run: |
-          curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
-          export PATH=$PATH:$(pwd)/bin
+      - name: Setup Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
 
-      - name: Install ESP32 Board
+      - name: Install ESP32 Platform
         run: |
-          bin/arduino-cli core update-index --additional-urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
-          # Paksa install versi 2.0.17, jangan biarin dia install 3.x
-          bin/arduino-cli core install esp32:esp32@2.0.17 --additional-urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+          arduino-cli core update-index --additional-urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+          arduino-cli core install esp32:esp32@2.0.17 --additional-urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-      - name: Install Libraries
+      - name: Install Specific Libraries
         run: |
-          # Buat folder libraries di dalam folder project biar gampang dicari compiler
-          mkdir -p libraries
-          
-          git clone https://github.com/me-no-dev/AsyncTCP.git libraries/AsyncTCP
-        
-          
-          # Library manager tetep aman pake CLI
+          # Pakai versi 1.2.3 karena ini yang paling stabil buat masalah md5.h
           arduino-cli lib install "ESP Async WebServer@1.2.3"
-          bin/arduino-cli lib install "Adafruit NeoPixel"
-          bin/arduino-cli lib install "IRremoteESP8266"
-          
+          arduino-cli lib install "AsyncTCP"
+
       - name: Compile Sketch
         run: |
-          bin/arduino-cli compile --fqbn esp32:esp32:esp32s3 \
-            --libraries ./libraries \
-            --build-property "build.extra_flags=-DCONFIG_LWIP_IP_FORWARD=1 -DCONFIG_LWIP_IPV4_NAPT=1" \
-            S3brp.ino --output-dir ./build
-
-      - name: Upload Binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: RogueS3-Firmware
-          path: ./build/*.bin
+          # Mencari file .ino secara otomatis di root folder
+          arduino-cli compile --fqbn esp32:esp32:esp32s3 --libraries ./libraries *.ino
