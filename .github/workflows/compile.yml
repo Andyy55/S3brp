@@ -25,12 +25,12 @@ jobs:
           mkdir -p libraries
           git clone https://github.com/me-no-dev/ESPAsyncWebServer.git libraries/ESPAsyncWebServer
           git clone https://github.com/me-no-dev/AsyncTCP.git libraries/AsyncTCP
-          git clone https://github.com/n676/ESP32_NAT_Router_Arduino.git /home/runner/Arduino/libraries/ESP32_NAT_Router
+        
           
           # Library manager tetep aman pake CLI
           bin/arduino-cli lib install "Adafruit NeoPixel"
           bin/arduino-cli lib install "IRremoteESP8266"
-     
+          bin/arduino-cli lib install "Wifi"
       - name: Compile Sketch
         run: |
           bin/arduino-cli compile --fqbn esp32:esp32:esp32s3 \
