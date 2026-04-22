@@ -16,7 +16,7 @@
 const char* ssid = "P-DTNR";
 const char* password = "andyanjir123";
 
-const int relayPin = 27; // Sesuaikan GPIO-mu
+const int relayPin = 35; // Sesuaikan GPIO-mu
 bool relayStatus = false; 
 
 AsyncWebServer server(80);
