@@ -120,8 +120,8 @@ void setup() {
   server.begin();
 }
 
-void void loop() {
-  unsigned long currentMillis = millis();
+void loop() {
+     unsigned long currentMillis = millis();
 
   if (!relayStatus) {
     // STATE: RELAY OFF 
