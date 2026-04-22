@@ -30,7 +30,7 @@ jobs:
           # Library manager tetep aman pake CLI
           bin/arduino-cli lib install "Adafruit NeoPixel"
           bin/arduino-cli lib install "IRremoteESP8266"
-          bin/arduino-cli lib install "Wifi"
+          
       - name: Compile Sketch
         run: |
           bin/arduino-cli compile --fqbn esp32:esp32:esp32s3 \
