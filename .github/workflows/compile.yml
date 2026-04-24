@@ -41,7 +41,7 @@ jobs:
           # --- FIX MD5 ERROR UNTUK ESP32-S3 ---
           sed -i 's/#include "md5.h"/#include "rom\/md5_utils.h"/' $HOME/Arduino/libraries/ESPAsyncWebServer/src/WebAuthentication.cpp
 
-            - name: Compile Sketch
+      - name: Compile Sketch
         run: |
           mkdir -p build
           # Cari file .ino yang aktif (bukan .ino.1)
