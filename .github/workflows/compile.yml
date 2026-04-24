@@ -41,17 +41,19 @@ jobs:
           # --- FIX MD5 ERROR UNTUK ESP32-S3 ---
           sed -i 's/#include "md5.h"/#include "rom\/md5_utils.h"/' $HOME/Arduino/libraries/ESPAsyncWebServer/src/WebAuthentication.cpp
 
-      - name: Compile Sketch
+            - name: Compile Sketch
         run: |
           mkdir -p build
-          # Cek input manual, kalau kosong build folder utama
-          SKETCH_TO_BUILD="${{ github.event.inputs.sketch_path }}"
-          if [ -z "$SKETCH_TO_BUILD" ]; then
-            SKETCH_TO_BUILD="."
-          fi
+          # Cari file .ino yang aktif (bukan .ino.1)
+          ACTIVE_SKETCH=$(ls *.ino | head -n 1)
+          SKETCH_NAME=$(basename "$ACTIVE_SKETCH" .ino)
           
-          echo "Processing build for: $SKETCH_TO_BUILD"
-          arduino-cli compile --fqbn esp32:esp32:esp32s3 --output-dir ./build --libraries $HOME/Arduino/libraries "$SKETCH_TO_BUILD"
+          # Bikin folder dadakan biar Arduino CLI gak rewel
+          mkdir -p "$SKETCH_NAME"
+          cp "$ACTIVE_SKETCH" "$SKETCH_NAME/"
+          
+          echo "Building: $SKETCH_NAME"
+          arduino-cli compile --fqbn esp32:esp32:esp32s3 --output-dir ./build --libraries $HOME/Arduino/libraries "$SKETCH_NAME"
 
       - name: Upload Firmware
         uses: actions/upload-artifact@v4
