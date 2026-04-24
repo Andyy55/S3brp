@@ -1,6 +1,15 @@
-name: Build_ESP32S3
+name: Build_ESP32S3_Dynamic
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      sketch_path:
+        description: 'Nama folder atau file .ino (kosongkan untuk deteksi otomatis)'
+        required: false
+        default: ''
 
 jobs:
   compile:
@@ -17,25 +26,35 @@ jobs:
           arduino-cli core update-index --additional-urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
           arduino-cli core install esp32:esp32@2.0.17 --additional-urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-      - name: Download & Fix Libraries
+      - name: Install Libraries
         run: |
+          # Install library resmi dari Library Manager
+          arduino-cli lib install "Adafruit SSD1306"
+          arduino-cli lib install "Adafruit GFX Library"
+          arduino-cli lib install "Adafruit BusIO"
+          
+          # Install library custom dari GitHub (Rogue Edition)
           mkdir -p $HOME/Arduino/libraries
           git clone https://github.com/me-no-dev/ESPAsyncWebServer.git $HOME/Arduino/libraries/ESPAsyncWebServer
           git clone https://github.com/me-no-dev/AsyncTCP.git $HOME/Arduino/libraries/AsyncTCP
           
-          # --- TRIK SAKTI FIX MD5 ---
-          # Kita ganti paksa tulisan #include "md5.h" jadi #include "rom/md5_utils.h"
-          # di dalem file WebAuthentication.cpp biar gak error
+          # --- FIX MD5 ERROR UNTUK ESP32-S3 ---
           sed -i 's/#include "md5.h"/#include "rom\/md5_utils.h"/' $HOME/Arduino/libraries/ESPAsyncWebServer/src/WebAuthentication.cpp
 
       - name: Compile Sketch
         run: |
           mkdir -p build
-          arduino-cli compile --fqbn esp32:esp32:esp32s3 --output-dir ./build --library $HOME/Arduino/libraries *.ino
+          # Cek input manual, kalau kosong build folder utama
+          SKETCH_TO_BUILD="${{ github.event.inputs.sketch_path }}"
+          if [ -z "$SKETCH_TO_BUILD" ]; then
+            SKETCH_TO_BUILD="."
+          fi
+          
+          echo "Processing build for: $SKETCH_TO_BUILD"
+          arduino-cli compile --fqbn esp32:esp32:esp32s3 --output-dir ./build --libraries $HOME/Arduino/libraries "$SKETCH_TO_BUILD"
 
       - name: Upload Firmware
         uses: actions/upload-artifact@v4
         with:
-          name: ESP32S3-Firmware
+          name: ESP32S3-OLED-Firmware
           path: build/*.bin
-          
